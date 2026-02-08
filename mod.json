@@ -1,9 +1,9 @@
 {
     "geode": "5.0.0-alpha.1",
-    "gd": {"android": "2.206"},
+    "gd": {"android": "2.2074"},
     "id": "yourname.notification",
     "name": "Notification Test",
     "developer": "YourName",
-    "version": "v1.0.0",
+    "version": "v1.0.1",
     "description": "Shows a notification when loaded"
 }
