@@ -1,9 +1,9 @@
 {
     "geode": "4.10.2",
     "gd": {"android": "2.2074"},
-    "id": "yourname.notification",
-    "name": "Notification Test",
+    "id": "voidx.modmenu",
+    "name": "Void X",
     "developer": "YourName",
-    "version": "v1.0.2",
-    "description": "Shows a notification when loaded"
+    "version": "v2.0.0",
+    "description": "Advanced mod menu with auto-win, noclip, and more"
 }
