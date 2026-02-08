@@ -37,31 +37,27 @@ class $modify(MyPlayLayer, PlayLayer) {
 };
 
 class $modify(MyPauseLayer, PauseLayer) {
-    struct Fields {
-        CCMenuItemSpriteExtra* voidBtn = nullptr;
-    };
-    
-    bool init(bool p0) {
-        if (!PauseLayer::init(p0)) return false;
+    void customSetup() {
+        PauseLayer::customSetup();
         
-        Loader::get()->queueInMainThread([this]() {
-            auto winSize = CCDirector::sharedDirector()->getWinSize();
-            
-            auto voidBtn = CCMenuItemSpriteExtra::create(
-                ButtonSprite::create("Void X", 0.6f, true, "bigFont.fnt", "GJ_button_01.png", 0, 1.0f),
-                this,
-                menu_selector(MyPauseLayer::onVoidMenu)
-            );
-            
-            auto menu = CCMenu::create();
-            menu->addChild(voidBtn);
-            menu->setPosition(winSize.width - 30, winSize.height - 30);
-            this->addChild(menu, 10);
-            
-            m_fields->voidBtn = voidBtn;
-        });
+        auto winSize = CCDirector::sharedDirector()->getWinSize();
         
-        return true;
+        auto sprite = CCSprite::createWithSpriteFrameName("GJ_button_01.png");
+        auto label = CCLabelBMFont::create("Void X", "bigFont.fnt");
+        label->setScale(0.4f);
+        label->setPosition(sprite->getContentSize() / 2);
+        sprite->addChild(label);
+        
+        auto btn = CCMenuItemSpriteExtra::create(
+            sprite,
+            this,
+            menu_selector(MyPauseLayer::onVoidMenu)
+        );
+        
+        auto menu = CCMenu::create();
+        menu->addChild(btn);
+        menu->setPosition(50, winSize.height - 50);
+        this->addChild(menu, 100);
     }
     
     void onVoidMenu(CCObject*) {
