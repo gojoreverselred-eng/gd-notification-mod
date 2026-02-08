@@ -5,7 +5,6 @@
 
 using namespace geode::prelude;
 
-// Settings
 bool autoWinEnabled = false;
 bool noclipEnabled = false;
 int fakeAttempts = 1;
@@ -15,13 +14,11 @@ class $modify(MyPlayLayer, PlayLayer) {
     void update(float dt) {
         PlayLayer::update(dt);
         
-        // Auto-win (legit - holds for you)
         if (autoWinEnabled) {
-            this->pushButton(0, true); // Hold jump
+            this->handleButton(true, 1, true);
         }
         
-        // Noclip
-        if (noclipEnabled) {
+        if (noclipEnabled && m_player1) {
             m_player1->m_isOnGround = true;
             m_player1->m_isDead = false;
             if (m_player2) {
@@ -34,27 +31,16 @@ class $modify(MyPlayLayer, PlayLayer) {
     void resetLevel() {
         PlayLayer::resetLevel();
         
-        // Override attempt counter
-        if (fakeAttempts > 0) {
+        if (fakeAttempts > 0 && m_level) {
             m_level->m_attempts = fakeAttempts - 1;
         }
-    }
-    
-    void pushButton(int button, bool player1) {
-        // Apply jump height modifier
-        if (jumpHeight != 1.0f) {
-            m_player1->m_yVelocity *= jumpHeight;
-            if (m_player2) m_player2->m_yVelocity *= jumpHeight;
-        }
-        PlayLayer::pushButton(button, player1);
     }
 };
 
 class $modify(MyPauseLayer, PauseLayer) {
-    bool init() {
-        if (!PauseLayer::init()) return false;
+    bool init(bool p0) {
+        if (!PauseLayer::init(p0)) return false;
         
-        // Create Void X menu button
         auto voidBtn = CCMenuItemSpriteExtra::create(
             ButtonSprite::create("Void X", "bigFont.fnt", "GJ_button_01.png"),
             this,
@@ -77,13 +63,11 @@ class $modify(MyPauseLayer, PauseLayer) {
             "Cancel", "OK",
             [](FLAlertLayer* alert, bool btn2) {
                 if (!btn2) return;
-                // Settings get applied from toggles
             }
         );
         
         auto layer = popup->m_mainLayer;
         
-        // Auto-win toggle
         auto autoWinToggle = CCMenuItemToggler::createWithStandardSprites(
             this, menu_selector(MyPauseLayer::onToggleAutoWin), 0.6f
         );
@@ -94,7 +78,6 @@ class $modify(MyPauseLayer, PauseLayer) {
         autoWinLabel->setScale(0.4f);
         autoWinLabel->setPosition({20, 50});
         
-        // Noclip toggle
         auto noclipToggle = CCMenuItemToggler::createWithStandardSprites(
             this, menu_selector(MyPauseLayer::onToggleNoclip), 0.6f
         );
@@ -105,7 +88,6 @@ class $modify(MyPauseLayer, PauseLayer) {
         noclipLabel->setScale(0.4f);
         noclipLabel->setPosition({20, 20});
         
-        // Attempt changer
         auto attemptLabel = CCLabelBMFont::create("Fake Attempts:", "bigFont.fnt");
         attemptLabel->setScale(0.4f);
         attemptLabel->setPosition({-60, -10});
@@ -114,10 +96,11 @@ class $modify(MyPauseLayer, PauseLayer) {
         attemptInput->setString(std::to_string(fakeAttempts));
         attemptInput->setPosition({60, -10});
         attemptInput->setCallback([](const std::string& text) {
-            fakeAttempts = std::stoi(text);
+            try {
+                fakeAttempts = std::stoi(text);
+            } catch(...) {}
         });
         
-        // Jump height
         auto jumpLabel = CCLabelBMFont::create("Jump Height:", "bigFont.fnt");
         jumpLabel->setScale(0.4f);
         jumpLabel->setPosition({-60, -40});
@@ -126,7 +109,9 @@ class $modify(MyPauseLayer, PauseLayer) {
         jumpInput->setString(fmt::format("{:.1f}", jumpHeight));
         jumpInput->setPosition({60, -40});
         jumpInput->setCallback([](const std::string& text) {
-            jumpHeight = std::stof(text);
+            try {
+                jumpHeight = std::stof(text);
+            } catch(...) {}
         });
         
         auto btnMenu = CCMenu::create();
