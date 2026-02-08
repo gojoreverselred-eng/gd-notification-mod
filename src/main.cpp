@@ -8,7 +8,6 @@ using namespace geode::prelude;
 bool autoWinEnabled = false;
 bool noclipEnabled = false;
 int fakeAttempts = 1;
-float jumpHeight = 1.0f;
 
 class $modify(MyPlayLayer, PlayLayer) {
     void update(float dt) {
@@ -46,86 +45,83 @@ class $modify(MyPauseLayer, PauseLayer) {
             this,
             menu_selector(MyPauseLayer::onVoidMenu)
         );
+        voidBtn->setID("void-x-button");
         
-        auto menu = this->getChildByID("center-button-menu");
-        if (menu) {
-            menu->addChild(voidBtn);
-            menu->updateLayout();
+        auto menu = this->getChildByID("left-button-menu");
+        if (!menu) {
+            menu = CCMenu::create();
+            menu->setID("left-button-menu");
+            menu->setPosition({30, 160});
+            this->addChild(menu);
         }
+        
+        menu->addChild(voidBtn);
+        menu->updateLayout();
         
         return true;
     }
     
     void onVoidMenu(CCObject*) {
-        auto popup = createQuickPopup(
+        auto popup = FLAlertLayer::create(
             "Void X Menu",
             "",
-            "Cancel", "OK",
-            [](FLAlertLayer* alert, bool btn2) {
-                if (!btn2) return;
-            }
+            "OK"
         );
         
         auto layer = popup->m_mainLayer;
+        auto winSize = layer->getContentSize();
+        
+        auto toggleMenu = CCMenu::create();
+        toggleMenu->setPosition({0, 0});
         
         auto autoWinToggle = CCMenuItemToggler::createWithStandardSprites(
-            this, menu_selector(MyPauseLayer::onToggleAutoWin), 0.6f
+            this, menu_selector(MyPauseLayer::onToggleAutoWin), 0.8f
         );
         autoWinToggle->toggle(autoWinEnabled);
-        autoWinToggle->setPosition({-100, 50});
+        autoWinToggle->setPosition({winSize.width / 2 - 80, winSize.height / 2 + 30});
         
-        auto autoWinLabel = CCLabelBMFont::create("Auto Win (Legit)", "bigFont.fnt");
-        autoWinLabel->setScale(0.4f);
-        autoWinLabel->setPosition({20, 50});
+        auto autoWinLabel = CCLabelBMFont::create("Auto Win (Hold)", "bigFont.fnt");
+        autoWinLabel->setScale(0.5f);
+        autoWinLabel->setPosition({winSize.width / 2 + 20, winSize.height / 2 + 30});
+        autoWinLabel->setAnchorPoint({0, 0.5f});
         
         auto noclipToggle = CCMenuItemToggler::createWithStandardSprites(
-            this, menu_selector(MyPauseLayer::onToggleNoclip), 0.6f
+            this, menu_selector(MyPauseLayer::onToggleNoclip), 0.8f
         );
         noclipToggle->toggle(noclipEnabled);
-        noclipToggle->setPosition({-100, 20});
+        noclipToggle->setPosition({winSize.width / 2 - 80, winSize.height / 2});
         
         auto noclipLabel = CCLabelBMFont::create("Noclip", "bigFont.fnt");
-        noclipLabel->setScale(0.4f);
-        noclipLabel->setPosition({20, 20});
+        noclipLabel->setScale(0.5f);
+        noclipLabel->setPosition({winSize.width / 2 + 20, winSize.height / 2});
+        noclipLabel->setAnchorPoint({0, 0.5f});
         
         auto attemptLabel = CCLabelBMFont::create("Fake Attempts:", "bigFont.fnt");
         attemptLabel->setScale(0.4f);
-        attemptLabel->setPosition({-60, -10});
+        attemptLabel->setPosition({winSize.width / 2 - 60, winSize.height / 2 - 30});
+        attemptLabel->setAnchorPoint({0, 0.5f});
         
-        auto attemptInput = TextInput::create(100, "Number");
+        auto attemptInput = TextInput::create(80, "1");
         attemptInput->setString(std::to_string(fakeAttempts));
-        attemptInput->setPosition({60, -10});
+        attemptInput->setPosition({winSize.width / 2 + 40, winSize.height / 2 - 30});
         attemptInput->setCallback([](const std::string& text) {
             try {
                 fakeAttempts = std::stoi(text);
-            } catch(...) {}
+            } catch(...) {
+                fakeAttempts = 1;
+            }
         });
         
-        auto jumpLabel = CCLabelBMFont::create("Jump Height:", "bigFont.fnt");
-        jumpLabel->setScale(0.4f);
-        jumpLabel->setPosition({-60, -40});
+        toggleMenu->addChild(autoWinToggle);
+        toggleMenu->addChild(noclipToggle);
         
-        auto jumpInput = TextInput::create(100, "1.0");
-        jumpInput->setString(fmt::format("{:.1f}", jumpHeight));
-        jumpInput->setPosition({60, -40});
-        jumpInput->setCallback([](const std::string& text) {
-            try {
-                jumpHeight = std::stof(text);
-            } catch(...) {}
-        });
-        
-        auto btnMenu = CCMenu::create();
-        btnMenu->addChild(autoWinToggle);
-        btnMenu->addChild(noclipToggle);
-        btnMenu->setPosition(layer->getContentSize() / 2);
-        layer->addChild(btnMenu);
-        
+        layer->addChild(toggleMenu);
         layer->addChild(autoWinLabel);
         layer->addChild(noclipLabel);
         layer->addChild(attemptLabel);
         layer->addChild(attemptInput);
-        layer->addChild(jumpLabel);
-        layer->addChild(jumpInput);
+        
+        popup->show();
     }
     
     void onToggleAutoWin(CCObject* sender) {
