@@ -1,0 +1,47 @@
+name: Build Geode Mod
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r26d
+      
+      - name: Clone Geode SDK
+        run: |
+          git clone https://github.com/geode-sdk/geode
+          cd geode
+          git checkout v3.0.0
+      
+      - name: Build Geode SDK
+        run: |
+          cd geode
+          cmake -B build -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=arm64-v8a \
+            -DANDROID_PLATFORM=android-23
+          cmake --build build
+      
+      - name: Build Mod
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=arm64-v8a \
+            -DANDROID_PLATFORM=android-23 \
+            -DGEODE_SDK_PATH=${{ github.workspace }}/geode
+          cmake --build build
+      
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: mod-package
+          path: build/*.geode
