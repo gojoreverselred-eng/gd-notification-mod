@@ -16,6 +16,12 @@ jobs:
         with:
           ndk-version: r26d
       
+      - name: Install Geode CLI
+        run: |
+          curl -L https://github.com/geode-sdk/cli/releases/latest/download/geode-cli-linux-x86_64 -o geode
+          chmod +x geode
+          sudo mv geode /usr/local/bin/
+      
       - name: Clone Geode SDK
         run: |
           git clone https://github.com/geode-sdk/geode
